@@ -15,7 +15,7 @@ def getOsName():
                     k, v = line.strip().split("=", 1)
                     data[k] = v.strip('"')
         
-        return data.get("PrettyName", f"{uname.system} {uname.release}")
+        return data.get("PRETTY_NAME", f"{uname.system} {uname.release}")    
     except FileNotFoundError:
         return f"{uname.system} {uname.release}"
     
@@ -40,7 +40,7 @@ def getSystemInfo():
     cpuCores = psutil.cpu_count(logical = False) or "?"
     cpuThreads = psutil.cpu_count(logical = True) or "?"
 
-    shell = (os.environ.get("SHELL") or os.environ.get("COMSPEC") or "unknow")
+    shell = (os.environ.get("SHELL") or os.environ.get("COMSPEC") or "unknown")
     shellName = shell.split("/")[-1].split("\\")[-1]
 
     batt = psutil.sensors_battery()
@@ -50,7 +50,7 @@ def getSystemInfo():
         battSTR = "N/A"
     
     return {
-        "userHost": f"{os.getlogin()}@{uname.node}",
+        "userHost": f"{os.getenv('USER') or os.getenv('USERNAME') or 'unknown'}@{uname.node}", 
         "os": osName,
         "kernel": uname.release,
         "shell": shellName,

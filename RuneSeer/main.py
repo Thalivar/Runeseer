@@ -1,8 +1,16 @@
 import argparse
 from itertools import zip_longest
-from colorama import init, Style
+from colorama import init, Style, Fore
 from systemInfo import getSystemInfo
 from theme import getTheme
+
+def colorUsage(pct, valueColor):
+    if pct > 90:
+        return Fore.RED
+    elif pct > 70:
+        return Fore.YELLOW
+    else:
+        return valueColor
 
 def formatLines(info, theme):
     label = theme["label"]
@@ -11,8 +19,12 @@ def formatLines(info, theme):
 
     memUsedGB = info["memoryUsed"] / (1024 ** 3)
     memTotalGB = info["memoryTotal"] / (1024 ** 3)
+    memPct = memUsedGB / memTotalGB * 100
+    memColor = colorUsage(memPct, value)
     diskUsedGB = info["diskUsed"] / (1024 ** 3)
     diskTotalGB = info["diskTotal"] / (1024 ** 3)
+    diskPct = diskUsedGB / diskTotalGB * 100
+    diskColor = colorUsage(diskPct, value)
 
     pairs = [
         ("User", info["userHost"]),
@@ -21,8 +33,8 @@ def formatLines(info, theme):
         ("Shell", info["shell"]),
         ("Uptime", info["uptime"]),
         ("CPU", info["cpu"]),
-        ("Memory", f"{memUsedGB:4.1f} / {memTotalGB:4.1f} Gib"),
-        ("Disk", f"{diskUsedGB:4.1f} / {diskTotalGB:4.1f} GiB"),
+        ("Memory", f"{memColor}{memUsedGB:4.1f} / {memTotalGB:4.1f} GiB"),
+        ("Disk", f"{diskColor}{diskUsedGB:4.1f} / {diskTotalGB:4.1f} GiB"),
         ("Battery", info["battery"])
     ]
 
