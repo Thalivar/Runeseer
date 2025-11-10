@@ -5,6 +5,7 @@ from systemInfo import getSystemInfo
 from theme import getTheme
 
 def colorUsage(pct, valueColor):
+    pct = max(0, min(100, pct))
     if pct > 90:
         return Fore.RED
     elif pct > 70:
@@ -19,11 +20,11 @@ def formatLines(info, theme):
 
     memUsedGB = info["memoryUsed"] / (1024 ** 3)
     memTotalGB = info["memoryTotal"] / (1024 ** 3)
-    memPct = memUsedGB / memTotalGB * 100
+    memPct = (memUsedGB / memTotalGB * 100) if memTotalGB > 0 else 0
     memColor = colorUsage(memPct, value)
     diskUsedGB = info["diskUsed"] / (1024 ** 3)
     diskTotalGB = info["diskTotal"] / (1024 ** 3)
-    diskPct = diskUsedGB / diskTotalGB * 100
+    diskPct = (diskUsedGB / diskTotalGB * 100) if diskTotalGB > 0 else 0
     diskColor = colorUsage(diskPct, value)
 
     pairs = [

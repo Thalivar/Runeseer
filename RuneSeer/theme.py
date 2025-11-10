@@ -32,5 +32,5 @@ THEMES = {
     }
 }
 
-def getTheme(name: str):
+def getTheme(name: str) -> dict:
     return THEMES.get(name, THEMES["minimal"])

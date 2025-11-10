@@ -16,7 +16,7 @@ def getOsName():
                     data[k] = v.strip('"')
         
         return data.get("PRETTY_NAME", f"{uname.system} {uname.release}")    
-    except FileNotFoundError:
+    except (FileNotFoundError, PermissionError, OSError):
         return f"{uname.system} {uname.release}"
     
 def uptimeSTR():
@@ -26,7 +26,7 @@ def uptimeSTR():
     days = delta.days
     hours, rem = divmod(delta.seconds, 3600)
     mins, _ = divmod(rem, 60)
-    return f"{days} Days {hours}:{mins} Hours"
+    return f"{days} Days {hours}:{mins:02d} Hours"
 
 def getSystemInfo():
     uname = platform.uname()
@@ -50,7 +50,7 @@ def getSystemInfo():
         battSTR = "N/A"
     
     return {
-        "userHost": f"{os.getenv('USER') or os.getenv('USERNAME') or 'unknown'}@{uname.node}", 
+        "userHost": f"{os.environ.get('USER') or os.environ.get('USERNAME') or 'unknown'}@{uname.node}", 
         "os": osName,
         "kernel": uname.release,
         "shell": shellName,
