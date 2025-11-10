@@ -1,4 +1,4 @@
-import argparse
+import argparse, os, time
 from itertools import zip_longest
 from colorama import init, Style, Fore
 from systemInfo import getSystemInfo
@@ -13,6 +13,14 @@ def colorUsage(pct, valueColor):
     else:
         return valueColor
 
+def bar(pct, width = 20, fill = "#", empty = "-"):
+    pct = max(0, min(100, pct))
+    filled = int(width * pct / 100)
+    return fill * filled + empty * (width - filled)
+
+def toGB(bytes):
+    return bytes / (1024 ** 3)
+
 def formatLines(info, theme):
     label = theme["label"]
     value = theme["value"]
@@ -22,10 +30,26 @@ def formatLines(info, theme):
     memTotalGB = info["memoryTotal"] / (1024 ** 3)
     memPct = (memUsedGB / memTotalGB * 100) if memTotalGB > 0 else 0
     memColor = colorUsage(memPct, value)
+
     diskUsedGB = info["diskUsed"] / (1024 ** 3)
     diskTotalGB = info["diskTotal"] / (1024 ** 3)
     diskPct = (diskUsedGB / diskTotalGB * 100) if diskTotalGB > 0 else 0
     diskColor = colorUsage(diskPct, value)
+
+    cpuPct = info.get("cpuUsage", 0)
+    cpuColor = colorUsage(cpuPct, value)
+    cpuBar = bar(cpuPct)
+
+    netSentGB = toGB(info["netSent"])
+    netRecvGB = toGB(info["netRecv"])
+
+    battPct = info.get("batteryPct", None)
+    if battPct is not None:
+        battColor = colorUsage(battPct, value)
+        battbar = bar(battPct)
+        battDisplay = f"{battColor}{battPct:4.0f}% {battbar}{reset}"
+    else:
+        battDisplay = info["battery"]
 
     pairs = [
         ("User", info["userHost"]),
@@ -34,9 +58,12 @@ def formatLines(info, theme):
         ("Shell", info["shell"]),
         ("Uptime", info["uptime"]),
         ("CPU", info["cpu"]),
+        ("CPU", f"{cpuColor}{cpuPct:4.1f}% {cpuBar}{reset}"),
         ("Memory", f"{memColor}{memUsedGB:4.1f} / {memTotalGB:4.1f} GiB"),
         ("Disk", f"{diskColor}{diskUsedGB:4.1f} / {diskTotalGB:4.1f} GiB"),
-        ("Battery", info["battery"])
+        ("Battery", battDisplay),
+        ("Net Sent", f"{netSentGB:4.2f} GiB"),
+        ("Net Recv", f"{netRecvGB:4.2f} GiB"),
     ]
 
     lines = []
@@ -44,15 +71,7 @@ def formatLines(info, theme):
         lines.append(f"{label}{k:8}{reset}: {value}{v}{reset}")
     return lines
 
-def main():
-    init(autoreset = True)
-
-    parser = argparse.ArgumentParser(prog = "RuneSeer", description = "System fetch")
-    parser.add_argument("--theme", choices = ["minimal"], default = "minimal")
-    args = parser.parse_args()
-
-    theme = getTheme(args.theme)
-
+def drawOnce( theme):
     accent = theme["accent"]
     reset = Style.RESET_ALL
     title = f"{accent}{theme['name']}{reset}"
@@ -67,6 +86,30 @@ def main():
     for art, line in zip_longest(logoLines, infoLines, fillvalue = ""):
         left = f"{theme['accent']}{art}{reset}"
         print(f"{left:<{padding}} {line}")
+
+def main():
+    init(autoreset = True)
+
+    parser = argparse.ArgumentParser(prog = "RuneSeer", description = "System fetch")
+    parser.add_argument("--theme", choices = ["minimal", "cat", "dragon"], default = "minimal")
+    parser.add_argument("--live", action = "store_true", help = "Enable live mode (auto-refresh)")
+    parser.add_argument("--interval", type = float, default = 1.0, help = "Refresh interval in secds for live mode")
+    args = parser.parse_args()
+
+    theme = getTheme(args.theme)
+    accent = theme["accent"]
+    reset = Style.RESET_ALL
+
+    if args.live:
+        try:
+            while True:
+                os.system("cls" if os.name == "nt" else "clear")
+                drawOnce(theme)
+                time.sleep(args.interval)
+        except KeyboardInterrupt:
+            pass
+    else:
+        drawOnce(theme)
 
 if __name__ == "__main__":
     main()

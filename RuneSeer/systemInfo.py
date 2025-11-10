@@ -39,15 +39,24 @@ def getSystemInfo():
     cpuName = uname.processor or "CPU"
     cpuCores = psutil.cpu_count(logical = False) or "?"
     cpuThreads = psutil.cpu_count(logical = True) or "?"
+    cpuUsage = psutil.cpu_percent(interval = 0.1)
 
     shell = (os.environ.get("SHELL") or os.environ.get("COMSPEC") or "unknown")
     shellName = shell.split("/")[-1].split("\\")[-1]
 
     batt = psutil.sensors_battery()
     if batt:
-        battSTR = f"{batt.percent:.0f}% ({"AC" if batt.power_plugged else "battery"})"
+        battPct = batt.percent
+        powerScr = "AC" if batt.power_plugged else "battery"
+        battSTR = f"{battPct:.0f}% ({powerScr})"
     else:
+        battPct = None
+        powerSrc = None
         battSTR = "N/A"
+
+    net = psutil.net_io_counters()
+    netSent = net.bytes_sent
+    netRecv = net.bytes_recv
     
     return {
         "userHost": f"{os.environ.get('USER') or os.environ.get('USERNAME') or 'unknown'}@{uname.node}", 
@@ -56,9 +65,13 @@ def getSystemInfo():
         "shell": shellName,
         "uptime": uptimeSTR(),
         "cpu": f"{cpuName} ({cpuCores}C/{cpuThreads}T)",
+        "cpuUsage": cpuUsage,
         "memoryUsed": mem.used,
         "memoryTotal": mem.total,
         "diskUsed": disk.used,
         "diskTotal": disk.total,
         "battery": battSTR,
+        "batteryPct": battPct,
+        "netSent": netSent,
+        "netRecv": netRecv
     }
