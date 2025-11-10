@@ -18,7 +18,7 @@ def bar(pct, width = 20, fill = "#", empty = "-"):
     filled = int(width * pct / 100)
     return fill * filled + empty * (width - filled)
 
-def toGB(bytes):
+def toGiB(bytes):
     return bytes / (1024 ** 3)
 
 def formatLines(info, theme):
@@ -40,16 +40,16 @@ def formatLines(info, theme):
     cpuColor = colorUsage(cpuPct, value)
     cpuBar = bar(cpuPct)
 
-    netSentGB = toGB(info["netSent"])
-    netRecvGB = toGB(info["netRecv"])
+    netSentGB = toGiB(info["netSent"])
+    netRecvGB = toGiB(info["netRecv"])
 
     battPct = info.get("batteryPct", None)
     if battPct is not None:
         battColor = colorUsage(battPct, value)
-        battbar = bar(battPct)
-        battDisplay = f"{battColor}{battPct:4.0f}% {battbar}{reset}"
+        battBar = bar(battPct)
+        battDisplay = f"{battColor}{battPct:4.0f}% {battBar}{reset}"
     else:
-        battDisplay = info["battery"]
+        battDisplay = info.get("battery", "N/A")
 
     pairs = [
         ("User", info["userHost"]),
@@ -57,7 +57,7 @@ def formatLines(info, theme):
         ("Kernel", info["kernel"]),
         ("Shell", info["shell"]),
         ("Uptime", info["uptime"]),
-        ("CPU", info["cpu"]),
+        ("CPU Model", info["cpu"]),
         ("CPU", f"{cpuColor}{cpuPct:4.1f}% {cpuBar}{reset}"),
         ("Memory", f"{memColor}{memUsedGB:4.1f} / {memTotalGB:4.1f} GiB"),
         ("Disk", f"{diskColor}{diskUsedGB:4.1f} / {diskTotalGB:4.1f} GiB"),
@@ -93,7 +93,7 @@ def main():
     parser = argparse.ArgumentParser(prog = "RuneSeer", description = "System fetch")
     parser.add_argument("--theme", choices = ["minimal", "cat", "dragon"], default = "minimal")
     parser.add_argument("--live", action = "store_true", help = "Enable live mode (auto-refresh)")
-    parser.add_argument("--interval", type = float, default = 1.0, help = "Refresh interval in secds for live mode")
+    parser.add_argument("--interval", type = float, default = 1.0, help = "Refresh interval in seconds for live mode")
     args = parser.parse_args()
 
     theme = getTheme(args.theme)

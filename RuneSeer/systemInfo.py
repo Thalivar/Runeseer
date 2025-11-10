@@ -39,7 +39,7 @@ def getSystemInfo():
     cpuName = uname.processor or "CPU"
     cpuCores = psutil.cpu_count(logical = False) or "?"
     cpuThreads = psutil.cpu_count(logical = True) or "?"
-    cpuUsage = psutil.cpu_percent(interval = 0.1)
+    cpuUsage = psutil.cpu_percent(interval = None)
 
     shell = (os.environ.get("SHELL") or os.environ.get("COMSPEC") or "unknown")
     shellName = shell.split("/")[-1].split("\\")[-1]
@@ -51,12 +51,16 @@ def getSystemInfo():
         battSTR = f"{battPct:.0f}% ({powerScr})"
     else:
         battPct = None
-        powerSrc = None
+        powerScr = None
         battSTR = "N/A"
 
     net = psutil.net_io_counters()
-    netSent = net.bytes_sent
-    netRecv = net.bytes_recv
+    if net:
+        netSent = net.bytes_sent
+        netRecv = net.bytes_recv
+    else:
+        netSent = 0
+        netRecv = 0
     
     return {
         "userHost": f"{os.environ.get('USER') or os.environ.get('USERNAME') or 'unknown'}@{uname.node}", 
